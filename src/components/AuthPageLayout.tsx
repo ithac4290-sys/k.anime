@@ -9,6 +9,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
+declare global {
+  interface Window {
+    Telegram?: any;
+  }
+}
+
 interface AuthPageLayoutProps {
   initialMode?: 'login' | 'register';
 }
@@ -53,49 +59,55 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
     }
   }, [user, router]);
 
-  const handleGoogleAuth = async () => {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get('error');
+      if (err === 'google_not_configured') {
+        setError("Google orqali kirish uchun GOOGLE_CLIENT_ID sozlanishi kerak.");
+      } else if (err === 'google_oauth_failed') {
+        setError("Google orqali kirishda xatolik yuz berdi.");
+      }
+    }
+  }, []);
+
+  const handleGoogleAuth = () => {
     setSubmitting(true);
     setError(null);
-    try {
-      const res = await fetch('/api/auth/google', { method: 'POST' });
-      const data = await res.json();
-      if (data.success && data.user) {
-        await refreshUser();
-        router.push('/');
-      } else {
-        window.location.href = '/api/auth/google';
-      }
-    } catch {
-      window.location.href = '/api/auth/google';
-    } finally {
-      setSubmitting(false);
-    }
+    window.location.href = '/api/auth/google';
   };
 
-  const handleTelegramAuth = async () => {
-    setSubmitting(true);
+  const handleTelegramAuth = () => {
     setError(null);
-    try {
-      // Instant fast registration simulation for Telegram user
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Telegram Foydalanuvchi',
-          email: `tg_user_${Math.floor(Math.random() * 9000 + 1000)}@t.me`,
-          googleId: 'tg_' + Date.now(),
-          avatarUrl: '/animeko-logo.jpg'
-        })
+    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'AnimekoAuthBot';
+    // Redirect to Telegram Bot or open Telegram Login
+    if (window.Telegram?.Login) {
+      window.Telegram.Login.auth({ bot_id: botUsername, request_access: true }, async (data: any) => {
+        if (!data) return;
+        setSubmitting(true);
+        try {
+          const res = await fetch('/api/auth/telegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          const resData = await res.json();
+          if (resData.success) {
+            await refreshUser();
+            router.push('/');
+          } else {
+            setError(resData.error || "Telegram orqali kirib bo‘lmadi");
+          }
+        } catch {
+          setError("Tarmoq xatoligi");
+        } finally {
+          setSubmitting(false);
+        }
       });
-      const data = await res.json();
-      if (data.success && data.user) {
-        await refreshUser();
-        router.push('/');
-      }
-    } catch {
-      setError("Telegram orqali ulanishda xatolik");
-    } finally {
-      setSubmitting(false);
+    } else {
+      // If Telegram widget not loaded, prompt user to use standard login or bot
+      setError("Telegram orqali kirish uchun Telegram bot integratsiyasi talab qilinadi. Login va parol orqali kiring.");
+      setShowManualForm(true);
     }
   };
 

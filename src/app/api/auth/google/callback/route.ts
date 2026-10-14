@@ -59,21 +59,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Fallback demo user
-  const { user, sessionId } = loginOrRegisterGoogleUser({
-    googleId: 'google_user_' + Date.now().toString().slice(-6),
-    email: 'google.user@gmail.com',
-    name: 'Google Foydalanuvchisi',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-  });
-
-  const response = NextResponse.redirect(new URL('/', request.url));
-  response.cookies.set('animeko_session', sessionId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 30 * 24 * 60 * 60
-  });
-  return response;
+  // If not configured, redirect back with error instead of creating dummy account
+  return NextResponse.redirect(new URL('/login?error=google_not_configured', request.url));
 }

@@ -39,23 +39,10 @@ export default function AuthModal() {
 
   const isLogin = authModalMode === 'login';
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = () => {
     setSubmitting(true);
     setError(null);
-    try {
-      const res = await fetch('/api/auth/google', { method: 'POST' });
-      const data = await res.json();
-      if (data.success && data.user) {
-        await refreshUser();
-        closeAuthModal();
-      } else {
-        window.location.href = '/api/auth/google';
-      }
-    } catch {
-      window.location.href = '/api/auth/google';
-    } finally {
-      setSubmitting(false);
-    }
+    window.location.href = '/api/auth/google';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

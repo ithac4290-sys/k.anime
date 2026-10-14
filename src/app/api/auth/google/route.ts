@@ -17,45 +17,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(googleAuthUrl.toString());
   }
 
-  // Otherwise, handle instant development Google sign-in
-  const { user, sessionId } = loginOrRegisterGoogleUser({
-    googleId: 'google_user_' + Date.now().toString().slice(-6),
-    email: 'user' + Math.floor(Math.random() * 900 + 100) + '@gmail.com',
-    name: 'Google Foydalanuvchisi',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-  });
-
-  const response = NextResponse.redirect(new URL('/', request.url));
-  response.cookies.set('animeko_session', sessionId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 30 * 24 * 60 * 60 // 30 days
-  });
-
-  return response;
+  // If not configured, do not create a fake user — redirect back with clear error
+  return NextResponse.redirect(new URL('/login?error=google_not_configured', request.url));
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const email = body.email || `google_user_${Math.floor(Math.random() * 9000 + 1000)}@gmail.com`;
-    const name = body.name || 'Google Foydalanuvchisi';
-    const googleId = body.googleId || 'google_' + Date.now();
-    const avatarUrl = body.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80';
+    const body = await request.json().catch(() => null);
+
+    if (!body || !body.email || !body.googleId) {
+      return NextResponse.json(
+        { error: "Haqiqiy Google hisob ma'lumotlari kiritilishi shart (email va ID)" },
+        { status: 400 }
+      );
+    }
+
+    const { email, name, googleId, avatarUrl } = body;
 
     const { user, sessionId } = loginOrRegisterGoogleUser({
       googleId,
-      email,
-      name,
-      avatarUrl
+      email: email.trim().toLowerCase(),
+      name: (name || email.split('@')[0]).trim(),
+      avatarUrl: avatarUrl || '/animeko-logo.png'
     });
 
     const response = NextResponse.json({
       success: true,
       user,
-      message: "Google orqali muvaffaqiyatli kirdingiz!"
+      message: "Google hisobingiz orqali muvaffaqiyatli kirdingiz!"
     });
 
     response.cookies.set('animeko_session', sessionId, {
