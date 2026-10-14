@@ -10,9 +10,14 @@ export const metadata: Metadata = {
   description: "Eng sara yapon animelari, mangalari va koreys manxvalari o'zbek tilida, bepul va yuqori sifatda.",
   keywords: ["animeko", "animeko.uz", "anime uzbekcha", "manga o'zbek tilida", "uzmanga", "manxva uzbek", "solo leveling uzbekcha", "naruto uzbekcha"],
   icons: {
-    icon: '/animeko-logo.jpg',
-    apple: '/animeko-logo.jpg',
-  }
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/animeko-logo.jpg' },
+    ],
+    apple: '/apple-icon.jpg',
+    shortcut: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
