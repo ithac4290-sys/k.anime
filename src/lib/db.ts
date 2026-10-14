@@ -2,19 +2,47 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DB_DIR = path.join(process.cwd(), 'data');
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
-}
+const IS_SERVERLESS = !!(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL);
 
-const DB_PATH = path.join(DB_DIR, 'mangauz.db');
+function getDatabasePath(): string {
+  const defaultDir = path.join(process.cwd(), 'data');
+  const defaultPath = path.join(defaultDir, 'mangauz.db');
+
+  if (IS_SERVERLESS) {
+    const tmpPath = path.join('/tmp', 'mangauz.db');
+    if (!fs.existsSync(tmpPath)) {
+      if (fs.existsSync(defaultPath)) {
+        try {
+          fs.copyFileSync(defaultPath, tmpPath);
+        } catch (e) {
+          console.error('Failed to copy database to /tmp:', e);
+        }
+      }
+    }
+    return tmpPath;
+  }
+
+  if (!fs.existsSync(defaultDir)) {
+    try {
+      fs.mkdirSync(defaultDir, { recursive: true });
+    } catch {
+      // ignore
+    }
+  }
+  return defaultPath;
+}
 
 let dbInstance: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!dbInstance) {
-    dbInstance = new Database(DB_PATH);
-    dbInstance.pragma('journal_mode = WAL');
+    const dbPath = getDatabasePath();
+    dbInstance = new Database(dbPath);
+    try {
+      dbInstance.pragma('journal_mode = WAL');
+    } catch {
+      // ignore WAL error on read-only environments
+    }
     initTables(dbInstance);
     seedInitialData(dbInstance);
   }
