@@ -73,11 +73,11 @@ export default function Footer() {
               </a>
               {/* Telegram */}
               <a
-                href="https://t.me"
+                href="https://t.me/K_Animovie_UZ"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full border border-[#232635] hover:border-red-500/50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#1a1c27] transition-all"
-                title="Telegram"
+                className="w-8 h-8 rounded-full border border-[#232635] hover:border-sky-500/50 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#1a1c27] transition-all"
+                title="Telegram Kanalimiz"
               >
                 <Send className="w-3.5 h-3.5 text-sky-400" />
               </a>
@@ -125,8 +125,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <Send className="w-3.5 h-3.5 text-sky-400" />
-                <a href="https://t.me/animeko_uz" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
-                  Telegram: @animeko_uz
+                <a href="https://t.me/K_Animovie_UZ" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+                  Telegram: @K_Animovie_UZ
                 </a>
               </li>
             </ul>

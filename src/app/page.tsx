@@ -82,10 +82,10 @@ export default async function HomePage() {
 
         <div className="flex items-center gap-2.5 shrink-0">
           <a
-            href="https://t.me/animeko_uz"
+            href="https://t.me/K_Animovie_UZ"
             target="_blank"
             rel="noreferrer"
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs font-bold shadow-lg shadow-red-600/30 transition-all hover:scale-102 flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-sky-600/30 transition-all hover:scale-102 flex items-center gap-2"
           >
             Telegram kanalimiz
           </a>

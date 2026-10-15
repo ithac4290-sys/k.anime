@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   Home, BookOpen, Search, LogIn, UserPlus, 
   Dices, Menu, X, Bookmark, ShieldCheck, Command,
-  LogOut, ChevronDown, User as UserIcon
+  LogOut, ChevronDown, User as UserIcon, Send
 } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { useAuth } from '@/context/AuthContext';
@@ -121,6 +121,16 @@ export default function Navbar() {
 
           {/* Right: Actions (Kirish & Ro'yxatdan o'tish or User Menu) */}
           <div className="hidden sm:flex items-center gap-3 shrink-0">
+            <a
+              href="https://t.me/K_Animovie_UZ"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded-xl text-sky-400 hover:text-white hover:bg-[#181a24] transition-colors"
+              title="Telegram Kanalimiz (@K_Animovie_UZ)"
+            >
+              <Send className="w-4 h-4 text-sky-400" />
+            </a>
+
             <Link
               href="/bookmarks"
               className="p-2 rounded-xl text-gray-300 hover:text-white hover:bg-[#181a24] transition-colors"
@@ -273,6 +283,16 @@ export default function Navbar() {
               >
                 <Dices className="w-4 h-4 text-red-400" /> Tasodifiy manga
               </Link>
+              <a
+                href="https://t.me/K_Animovie_UZ"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-lg text-xs font-semibold text-sky-400 hover:bg-[#181a24] flex items-center gap-2"
+              >
+                <Send className="w-4 h-4 text-sky-400" /> Telegram kanalimiz
+              </a>
+
 
               {user ? (
                 <div className="pt-2 border-t border-[#1f212c] space-y-1">
