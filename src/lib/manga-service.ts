@@ -375,10 +375,10 @@ export function rateManga(slug: string, score: number): { rating: number; rating
   return { rating: newRating, rating_count: newCount };
 }
 
-export function getRandomMangaSlug(): string {
+export function getRandomMangaSlug(): string | null {
   const db = getDb();
   const row = db.prepare('SELECT slug FROM manga ORDER BY RANDOM() LIMIT 1').get() as { slug: string } | undefined;
-  return row ? row.slug : 'solo-leveling';
+  return row ? row.slug : null;
 }
 
 export function getMangasBySlugs(slugs: string[]): Manga[] {

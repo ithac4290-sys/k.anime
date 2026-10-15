@@ -15,6 +15,10 @@ interface MangaSectionRowProps {
 export default function MangaSectionRow({ title, mangas, allLink = '/catalog' }: MangaSectionRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  if (!mangas || mangas.length === 0) {
+    return null;
+  }
+
   const scrollNext = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });

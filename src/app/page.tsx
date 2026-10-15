@@ -1,5 +1,7 @@
 import React from 'react';
-import { getMangasBySlugs, getAllManga } from '@/lib/manga-service';
+import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
+import { getAllManga } from '@/lib/manga-service';
 import FeaturedHero from '@/components/FeaturedHero';
 import MangaSectionRow from '@/components/MangaSectionRow';
 import LatestChaptersSection from '@/components/LatestChaptersSection';
@@ -7,50 +9,12 @@ import LatestChaptersSection from '@/components/LatestChaptersSection';
 export const instant = false;
 
 export default async function HomePage() {
-  // Ordered exact titles matching Screenshot 1: Mashhur
-  const popularSlugs = [
-    'qilich-qiroli',
-    'solo-leveling',
-    'gertsogning-kenja-ogli',
-    'qilich-ustasining-kenja-ogli',
-    'chegara-bilmas-sehrgar',
-    'beginning-after-the-end'
-  ];
+  const { mangas: popularMangas } = getAllManga({ sort: 'views', limit: 6 });
+  const { mangas: newMangas } = getAllManga({ sort: 'latest', limit: 6 });
+  const { mangas: recommendedMangas } = getAllManga({ sort: 'rating', limit: 6 });
 
-  // Ordered exact titles matching Screenshot 2: Yangi
-  const newSlugs = [
-    'ilohiy-iblis-yuksalishi',
-    'yakkaxon-oyin-imperatori',
-    'valhalla-hikoyasi',
-    'urush-mabudining-qaytishi',
-    'oyinda-vaxshiy-sifatida-omon-qolish',
-    'dangasa-hukmdor-solnomalari'
-  ];
-
-  // Ordered exact titles matching Screenshot 3: Tavsiya etilgan
-  const recommendedSlugs = [
-    'hua-togi-klanining-qaytishi',
-    'dastlabki-binafsha-chaqmoq',
-    'kelajakka-10000-yillik-sayohat',
-    'mening-xotinim-iblis-qirolichasi',
-    'sss-darajali-oyinchining-qaytishi',
-    'oyinchi-player'
-  ];
-
-  const popularMangas = getMangasBySlugs(popularSlugs);
-  const newMangas = getMangasBySlugs(newSlugs);
-  const recommendedMangas = getMangasBySlugs(recommendedSlugs);
-
-  // If any fallback needed, fetch all
-  const { mangas: allFallback } = getAllManga({ limit: 12 });
-  const finalPopular = popularMangas.length > 0 ? popularMangas : allFallback.slice(0, 6);
-  const finalNew = newMangas.length > 0 ? newMangas : allFallback.slice(6, 12);
-  const finalRecommended = recommendedMangas.length > 0 ? recommendedMangas : allFallback.slice(0, 6);
-
-  // Featured hero list with "Yolg'izlikda daraja ko'tarish" first as in Screenshot 1
-  const soloLeveling = popularMangas.find(m => m.slug === 'solo-leveling') || finalPopular[1] || finalPopular[0];
-  const qilichQiroli = popularMangas.find(m => m.slug === 'qilich-qiroli') || finalPopular[0];
-  const featuredList = [soloLeveling, qilichQiroli, ...finalPopular.slice(2, 5)];
+  const featuredList = popularMangas.slice(0, 5);
+  const hasMangas = popularMangas.length > 0 || newMangas.length > 0;
 
   return (
     <div className="space-y-8 pb-8">
@@ -92,32 +56,54 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* 1. Top Hero Carousel matching Screenshot 1 */}
-      <FeaturedHero featured={featuredList} />
+      {!hasMangas ? (
+        <div className="py-20 px-4 text-center rounded-3xl border border-[#20222e] bg-[#111218]/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-red-600/10 border border-red-500/30 flex items-center justify-center text-red-500">
+            <BookOpen className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5 max-w-md">
+            <h3 className="text-xl font-bold text-white">Hozircha mangalar mavjud emas</h3>
+            <p className="text-sm text-gray-400">
+              Admin panel orqali yangi mangalar qo‘shilganda bu yerda avtomatik paydo bo‘ladi.
+            </p>
+          </div>
+          <Link
+            href="/admin"
+            className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition-all shadow-lg shadow-red-600/25"
+          >
+            Admin Panelga o‘tish
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* 1. Top Hero Carousel */}
+          <FeaturedHero featured={featuredList} />
 
-      {/* 2. Section: | Mashhur matching Screenshot 1 */}
-      <MangaSectionRow
-        title="Mashhur"
-        mangas={finalPopular}
-        allLink="/catalog?sort=views"
-      />
+          {/* 2. Section: | Mashhur */}
+          <MangaSectionRow
+            title="Mashhur"
+            mangas={popularMangas}
+            allLink="/catalog?sort=views"
+          />
 
-      {/* 3. Section: | Yangi matching Screenshot 2 */}
-      <MangaSectionRow
-        title="Yangi"
-        mangas={finalNew}
-        allLink="/catalog?sort=latest"
-      />
+          {/* 3. Section: | Yangi */}
+          <MangaSectionRow
+            title="Yangi"
+            mangas={newMangas}
+            allLink="/catalog?sort=latest"
+          />
 
-      {/* 4. Section: | So'nggi boblar matching Screenshot 2 */}
-      <LatestChaptersSection />
+          {/* 4. Section: | So'nggi boblar */}
+          <LatestChaptersSection />
 
-      {/* 5. Section: | Tavsiya etilgan matching Screenshot 3 */}
-      <MangaSectionRow
-        title="Tavsiya etilgan"
-        mangas={finalRecommended}
-        allLink="/catalog?sort=rating"
-      />
+          {/* 5. Section: | Tavsiya etilgan */}
+          <MangaSectionRow
+            title="Tavsiya etilgan"
+            mangas={recommendedMangas}
+            allLink="/catalog?sort=rating"
+          />
+        </>
+      )}
     </div>
   );
 }
