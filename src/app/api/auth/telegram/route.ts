@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { getDb } from '@/lib/db';
-import { ensureAuthTables } from '@/lib/auth-service';
+import { loginOrRegisterTelegramUser, verifyTelegramAuthData } from '@/lib/auth-service';
+
+export async function GET(request: NextRequest) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const botId = process.env.TELEGRAM_BOT_ID || (botToken ? botToken.split(':')[0] : null);
+  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const callbackUrl = `${baseUrl}/api/auth/telegram/callback`;
+
+  // If real Bot ID is available, redirect to official Telegram OAuth / OpenID endpoint
+  if (botId) {
+    const telegramOAuthUrl = new URL('https://oauth.telegram.org/auth');
+    telegramOAuthUrl.searchParams.set('bot_id', botId);
+    telegramOAuthUrl.searchParams.set('origin', baseUrl);
+    telegramOAuthUrl.searchParams.set('embed', '0');
+    telegramOAuthUrl.searchParams.set('request_access', 'write');
+    telegramOAuthUrl.searchParams.set('return_to', callbackUrl);
+    return NextResponse.redirect(telegramOAuthUrl.toString());
+  }
+
+  // If not configured, redirect back with descriptive error
+  return NextResponse.redirect(new URL('/login?error=telegram_not_configured', request.url));
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,21 +35,10 @@ export async function POST(request: NextRequest) {
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
-    // If bot token is configured, verify HMAC signature from Telegram
+    // If bot token is configured, verify HMAC signature
     if (botToken) {
-      const { hash, ...checkData } = data;
-      const dataCheckString = Object.keys(checkData)
-        .sort()
-        .map((k) => `${k}=${checkData[k]}`)
-        .join('\n');
-
-      const secretKey = crypto.createHash('sha256').update(botToken).digest();
-      const calculatedHash = crypto
-        .createHmac('sha256', secretKey)
-        .update(dataCheckString)
-        .digest('hex');
-
-      if (calculatedHash !== hash) {
+      const isValid = verifyTelegramAuthData(data, botToken);
+      if (!isValid) {
         return NextResponse.json(
           { error: "Telegram ma'lumotlari haqiqiyligi tasdiqlanmadi" },
           { status: 403 }
@@ -38,64 +46,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Extract real Telegram user details
-    const telegramId = String(data.id);
-    const firstName = data.first_name || '';
-    const lastName = data.last_name || '';
-    const tgUsername = data.username;
-    const displayName = (firstName + ' ' + lastName).trim() || tgUsername || `tg_${telegramId}`;
-    const avatarUrl = data.photo_url || '/animeko-logo.png';
-    const email = tgUsername ? `${tgUsername.toLowerCase()}@telegram.org` : `tg_${telegramId}@telegram.org`;
-
-    ensureAuthTables();
-    const db = getDb();
-
-    // Check if user exists by telegramId or email
-    let user = db.prepare(`
-      SELECT * FROM users WHERE google_id = ? OR email = ?
-    `).get(`tg_${telegramId}`, email) as any;
-
-    if (!user) {
-      // Create new user with real Telegram details
-      const result = db.prepare(`
-        INSERT INTO users (username, email, password_hash, avatar_url, role, google_id)
-        VALUES (?, ?, ?, ?, 'user', ?)
-      `).run(
-        displayName,
-        email,
-        'telegram_oauth_account',
-        avatarUrl,
-        `tg_${telegramId}`
-      );
-
-      user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid) as any;
-    } else {
-      // Update avatar if provided
-      if (avatarUrl && avatarUrl !== '/animeko-logo.png') {
-        db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, user.id);
-        user.avatar_url = avatarUrl;
-      }
-    }
-
-    // Create session
-    const sessionId = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-    db.prepare(`
-      INSERT INTO sessions (id, user_id, expires_at)
-      VALUES (?, ?, ?)
-    `).run(sessionId, user.id, expiresAt);
+    const { user, sessionId } = loginOrRegisterTelegramUser({
+      telegramId: String(data.id),
+      firstName: data.first_name,
+      lastName: data.last_name,
+      username: data.username,
+      photoUrl: data.photo_url
+    });
 
     const response = NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        avatar_url: user.avatar_url,
-        role: user.role,
-        created_at: user.created_at
-      },
+      user,
       message: "Telegram orqali muvaffaqiyatli kirdingiz!"
     });
 

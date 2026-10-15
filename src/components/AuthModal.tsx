@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function AuthModal() {
@@ -44,6 +44,13 @@ export default function AuthModal() {
     setError(null);
     window.location.href = '/api/auth/google';
   };
+
+  const handleTelegramAuth = () => {
+    setSubmitting(true);
+    setError(null);
+    window.location.href = '/api/auth/telegram';
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +169,17 @@ export default function AuthModal() {
           </button>
         </div>
 
+        {/* Telegram Authentication Button */}
+        <button
+          type="button"
+          onClick={handleTelegramAuth}
+          disabled={submitting}
+          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#181a26] hover:bg-[#202334] border border-[#272b3e] hover:border-sky-500/50 text-white shadow-md transition-all flex items-center justify-center gap-3 cursor-pointer group mb-2.5"
+        >
+          <Send className="w-4 h-4 text-sky-400 fill-sky-400 shrink-0 transition-transform group-hover:scale-110" />
+          <span>Telegram orqali {isLogin ? 'kirish' : "ro‘yxatdan o‘tish"}</span>
+        </button>
+
         {/* Google Authentication Button */}
         <button
           type="button"
@@ -189,6 +207,7 @@ export default function AuthModal() {
           </svg>
           <span>Google orqali {isLogin ? 'kirish' : "ro‘yxatdan o‘tish"}</span>
         </button>
+
 
         {/* Divider */}
         <div className="relative flex items-center justify-center mb-5">

@@ -265,6 +265,82 @@ export function loginOrRegisterGoogleUser(data: {
   return { user: row, sessionId };
 }
 
+export function verifyTelegramAuthData(data: Record<string, string>, botToken: string): boolean {
+  try {
+    const { hash, ...checkData } = data;
+    if (!hash) return false;
+
+    const dataCheckString = Object.keys(checkData)
+      .sort()
+      .map((k) => `${k}=${checkData[k]}`)
+      .join('\n');
+
+    const secretKey = crypto.createHash('sha256').update(botToken).digest();
+    const calculatedHash = crypto
+      .createHmac('sha256', secretKey)
+      .update(dataCheckString)
+      .digest('hex');
+
+    return calculatedHash === hash;
+  } catch {
+    return false;
+  }
+}
+
+export function loginOrRegisterTelegramUser(data: {
+  telegramId: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  photoUrl?: string;
+}): { user: User; sessionId: string } {
+  ensureAuthTables();
+  const db = getDb();
+
+  const tgId = `tg_${data.telegramId}`;
+  const cleanUsername = data.username ? data.username.trim().toLowerCase() : '';
+  const email = cleanUsername 
+    ? `${cleanUsername}@telegram.org` 
+    : `${tgId}@telegram.org`;
+
+  let row = db.prepare("SELECT id, username, email, avatar_url, role, created_at FROM users WHERE google_id = ? OR email = ?").get(tgId, email) as User | undefined;
+
+  if (row) {
+    if (data.photoUrl) {
+      db.prepare("UPDATE users SET google_id = ?, avatar_url = ? WHERE id = ?").run(tgId, data.photoUrl, row.id);
+    } else {
+      db.prepare("UPDATE users SET google_id = ? WHERE id = ?").run(tgId, row.id);
+    }
+    row = db.prepare("SELECT id, username, email, avatar_url, role, created_at FROM users WHERE id = ?").get(row.id) as User;
+  } else {
+    const rawName = cleanUsername || [data.firstName, data.lastName].filter(Boolean).join('_') || `user_${data.telegramId}`;
+    let baseUsername = rawName
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '')
+      .slice(0, 15);
+
+    if (baseUsername.length < 3) baseUsername = `tg_${data.telegramId}`.slice(0, 15);
+
+    let uniqueUsername = baseUsername;
+    let counter = 1;
+    while (db.prepare("SELECT id FROM users WHERE username = ?").get(uniqueUsername)) {
+      uniqueUsername = `${baseUsername}_${counter++}`;
+    }
+
+    const randomPasswordHash = hashPassword(crypto.randomUUID());
+    const info = db.prepare(`
+      INSERT INTO users (username, email, password_hash, avatar_url, role, google_id)
+      VALUES (?, ?, ?, ?, 'user', ?)
+    `).run(uniqueUsername, email, randomPasswordHash, data.photoUrl || '/animeko-logo.png', tgId);
+
+    row = db.prepare("SELECT id, username, email, avatar_url, role, created_at FROM users WHERE id = ?").get(info.lastInsertRowid) as User;
+  }
+
+  const sessionId = createSession(row.id);
+  return { user: row, sessionId };
+}
+
+
 export function addCoinsToUser(userId: number, amount: number): { success: boolean; coins?: number; error?: string } {
   ensureAuthTables();
   const db = getDb();

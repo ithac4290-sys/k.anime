@@ -67,6 +67,12 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
         setError("Google orqali kirish uchun GOOGLE_CLIENT_ID sozlanishi kerak.");
       } else if (err === 'google_oauth_failed') {
         setError("Google orqali kirishda xatolik yuz berdi.");
+      } else if (err === 'telegram_not_configured') {
+        setError("Telegram orqali kirish uchun TELEGRAM_BOT_TOKEN sozlanishi kerak.");
+      } else if (err === 'telegram_oauth_failed' || err === 'telegram_invalid_hash') {
+        setError("Telegram orqali avtorizatsiyadan o‘tib bo‘lmadi.");
+      } else if (err === 'telegram_expired') {
+        setError("Telegram avtorizatsiya vaqti tugagan. Qaytadan urinib ko‘ring.");
       }
     }
   }, []);
@@ -78,38 +84,11 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
   };
 
   const handleTelegramAuth = () => {
+    setSubmitting(true);
     setError(null);
-    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'AnimekoAuthBot';
-    // Redirect to Telegram Bot or open Telegram Login
-    if (window.Telegram?.Login) {
-      window.Telegram.Login.auth({ bot_id: botUsername, request_access: true }, async (data: any) => {
-        if (!data) return;
-        setSubmitting(true);
-        try {
-          const res = await fetch('/api/auth/telegram', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          });
-          const resData = await res.json();
-          if (resData.success) {
-            await refreshUser();
-            router.push('/');
-          } else {
-            setError(resData.error || "Telegram orqali kirib bo‘lmadi");
-          }
-        } catch {
-          setError("Tarmoq xatoligi");
-        } finally {
-          setSubmitting(false);
-        }
-      });
-    } else {
-      // If Telegram widget not loaded, prompt user to use standard login or bot
-      setError("Telegram orqali kirish uchun Telegram bot integratsiyasi talab qilinadi. Login va parol orqali kiring.");
-      setShowManualForm(true);
-    }
+    window.location.href = '/api/auth/telegram';
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
