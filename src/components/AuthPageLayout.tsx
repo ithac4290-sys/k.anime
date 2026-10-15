@@ -8,6 +8,8 @@ import {
   LogIn, UserPlus, AlertCircle, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import TelegramLoginWidget from './TelegramLoginWidget';
+
 
 declare global {
   interface Window {
@@ -193,17 +195,17 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
             </div>
           )}
 
-          {/* Primary Action 1: Telegram orqali kirish (Matching Screenshot) */}
+          {/* Primary Action 1: Telegram orqali kirish (Official Telegram Login Widget) */}
           <div className="space-y-3 pt-2">
-            <button
-              type="button"
-              onClick={handleTelegramAuth}
-              disabled={submitting}
-              className="w-full py-3.5 px-5 rounded-2xl font-bold text-xs sm:text-sm bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-[0_0_25px_rgba(239,68,68,0.35)] transition-all hover:scale-[1.02] flex items-center justify-center gap-3 cursor-pointer group"
-            >
-              <Send className="w-4 h-4 fill-white transition-transform group-hover:translate-x-0.5" />
-              <span>Telegram orqali kirish</span>
-            </button>
+            <div className="flex flex-col items-center justify-center py-2 px-3 rounded-2xl bg-[#141622]/80 border border-[#23273a] shadow-inner">
+              <TelegramLoginWidget
+                botName="KOD_E_bot"
+                authUrl="https://k.animovie.uz/auth/telegram/callback"
+                size="large"
+                radius={14}
+              />
+            </div>
+
 
             {/* Divider: YOKI */}
             <div className="relative flex items-center justify-center py-2">

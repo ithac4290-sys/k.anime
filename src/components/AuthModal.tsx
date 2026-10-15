@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import TelegramLoginWidget from './TelegramLoginWidget';
+
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authModalMode, openAuthModal, login, register, refreshUser } = useAuth();
@@ -169,16 +171,16 @@ export default function AuthModal() {
           </button>
         </div>
 
-        {/* Telegram Authentication Button */}
-        <button
-          type="button"
-          onClick={handleTelegramAuth}
-          disabled={submitting}
-          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#181a26] hover:bg-[#202334] border border-[#272b3e] hover:border-sky-500/50 text-white shadow-md transition-all flex items-center justify-center gap-3 cursor-pointer group mb-2.5"
-        >
-          <Send className="w-4 h-4 text-sky-400 fill-sky-400 shrink-0 transition-transform group-hover:scale-110" />
-          <span>Telegram orqali {isLogin ? 'kirish' : "ro‘yxatdan o‘tish"}</span>
-        </button>
+        {/* Telegram Authentication Widget */}
+        <div className="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl bg-[#181a26] border border-[#272b3e] mb-2.5">
+          <TelegramLoginWidget
+            botName="KOD_E_bot"
+            authUrl="https://k.animovie.uz/auth/telegram/callback"
+            size="large"
+            radius={12}
+          />
+        </div>
+
 
         {/* Google Authentication Button */}
         <button
