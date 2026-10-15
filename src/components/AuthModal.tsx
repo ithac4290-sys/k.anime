@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus, AlertCircle, CheckCircle2, Send } from 'lucide-react';
+import { X, User, Mail, Lock, Eye, EyeOff, LogIn, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import TelegramLoginWidget from './TelegramLoginWidget';
 
 
 export default function AuthModal() {
@@ -171,15 +170,6 @@ export default function AuthModal() {
           </button>
         </div>
 
-        {/* Telegram Authentication Widget */}
-        <div className="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl bg-[#181a26] border border-[#272b3e] mb-2.5">
-          <TelegramLoginWidget
-            botName="KOD_E_bot"
-            authUrl="https://k.animovie.uz/auth/telegram/callback"
-            size="large"
-            radius={12}
-          />
-        </div>
 
 
         {/* Google Authentication Button */}

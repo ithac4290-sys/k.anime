@@ -8,7 +8,6 @@ import {
   LogIn, UserPlus, AlertCircle, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import TelegramLoginWidget from './TelegramLoginWidget';
 
 
 declare global {
@@ -41,7 +40,7 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
   const { user, login, register, refreshUser } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
-  const [showManualForm, setShowManualForm] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(true);
 
   // Form fields
   const [username, setUsername] = useState('');
@@ -85,11 +84,6 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
     window.location.href = '/api/auth/google';
   };
 
-  const handleTelegramAuth = () => {
-    setSubmitting(true);
-    setError(null);
-    window.location.href = '/api/auth/telegram';
-  };
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,26 +189,8 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
             </div>
           )}
 
-          {/* Primary Action 1: Telegram orqali kirish (Official Telegram Login Widget) */}
+          {/* Primary Action: Google hisobingiz bilan kiring */}
           <div className="space-y-3 pt-2">
-            <div className="flex flex-col items-center justify-center py-2 px-3 rounded-2xl bg-[#141622]/80 border border-[#23273a] shadow-inner">
-              <TelegramLoginWidget
-                botName="KOD_E_bot"
-                authUrl="https://k.animovie.uz/auth/telegram/callback"
-                size="large"
-                radius={14}
-              />
-            </div>
-
-
-            {/* Divider: YOKI */}
-            <div className="relative flex items-center justify-center py-2">
-              <div className="border-t border-[#1d202e] w-full" />
-              <span className="bg-[#090a0f] px-3 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                YOKI
-              </span>
-              <div className="border-t border-[#1d202e] w-full" />
-            </div>
 
             {/* Primary Action 2: Google hisobingiz bilan kiring (Matching Screenshot) */}
             <button
@@ -233,8 +209,17 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
             </button>
           </div>
 
-          {/* Toggle Manual Email / Password form */}
-          <div className="pt-2">
+          {/* Divider: YOKI */}
+          <div className="relative flex items-center justify-center py-1">
+            <div className="border-t border-[#1d202e] w-full" />
+            <span className="bg-[#090a0f] px-3 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+              YOKI
+            </span>
+            <div className="border-t border-[#1d202e] w-full" />
+          </div>
+
+          {/* Manual Email / Password form */}
+          <div>
             {!showManualForm ? (
               <button
                 type="button"
