@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { registerUser, createSession } from '@/lib/auth-service';
+import { sendWelcomeEmail } from '@/lib/email';
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +25,11 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const sessionId = createSession(result.user.id);
+
+    // Send welcome email asynchronously via Resend
+    sendWelcomeEmail(result.user.email, result.user.username).catch((err) => {
+      console.error('[Register] Welcome email send error:', err);
+    });
 
     const response = NextResponse.json({
       success: true,
