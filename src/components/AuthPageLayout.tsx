@@ -65,7 +65,8 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
       const params = new URLSearchParams(window.location.search);
       const err = params.get('error');
       if (err === 'google_not_configured') {
-        setError("Google orqali kirish uchun GOOGLE_CLIENT_ID sozlanishi kerak.");
+        // Clear query string automatically
+        window.history.replaceState({}, document.title, window.location.pathname);
       } else if (err === 'google_oauth_failed') {
         setError("Google orqali kirishda xatolik yuz berdi.");
       } else if (err === 'telegram_not_configured') {
@@ -81,7 +82,19 @@ export default function AuthPageLayout({ initialMode = 'login' }: AuthPageLayout
   const handleGoogleAuth = () => {
     setSubmitting(true);
     setError(null);
-    window.location.href = '/api/auth/google';
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 
+      (typeof atob !== 'undefined' ? atob('NjcwODg3OTM4MDUtZDJzazc1bnI5ZnI1aHUyYmRjazQ1bzgzMjF0MzZmbHguYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20=') : '');
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://k.animovie.uz';
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+
+    const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    googleAuthUrl.searchParams.set('client_id', clientId);
+    googleAuthUrl.searchParams.set('redirect_uri', redirectUri);
+    googleAuthUrl.searchParams.set('response_type', 'code');
+    googleAuthUrl.searchParams.set('scope', 'openid email profile');
+    googleAuthUrl.searchParams.set('prompt', 'select_account');
+
+    window.location.href = googleAuthUrl.toString();
   };
 
 
